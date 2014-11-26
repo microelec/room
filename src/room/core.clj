@@ -181,10 +181,6 @@
       (wrap-session {:store (cookie-store {:key "a 16-byt3 s3cr3t"})})))
 
 (defmulti event-msg-handler :id) ; Dispatch on event-id
-;; Wrap for logging, catching, etc.:
-(defn     event-msg-handler* [{:as ev-msg :keys [id ?data event]}]
-  (logf "Event: %s" event)
-  (event-msg-handler ev-msg))
 
 (do ; Server-side methods
   (defmethod event-msg-handler :default ; Fallback
@@ -194,6 +190,15 @@
       (logf "Unhandled event: %s" event)
       (when ?reply-fn
         (?reply-fn {:umatched-event-as-echoed-from-from-server event}))))
+  
+  (defmethod event-msg-handler :chsk/ws-ping ; websocket ping
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let [session (:session ring-req)
+          uid (:uid session)]
+      ;(logf " websocket ping received: %s" event)
+      ;currently ignore this ping
+      ;to send websocket pong package in future
+      ))
 
   ;; Add your (defmethod event-msg-handler <event-id> [ev-msg] <body>)s here...
   (defmethod event-msg-handler :message/send
@@ -258,6 +263,10 @@
   (defmethod event-msg-handler :user/typing
     [{:as ev-msg :keys [event id ?date ring-req ?reply-fn send-fn]}]
     (logf "user typing")))
+;; Wrap for logging, catching, etc.:
+(defn     event-msg-handler* [{:as ev-msg :keys [id ?data event]}]
+  (logf "Event: %s" event)
+  (event-msg-handler ev-msg))
 
 (defonce http-server_ (atom nil))
 
