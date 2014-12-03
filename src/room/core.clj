@@ -88,6 +88,10 @@
        [:div.container
         [:div {:id "app"}]]
        
+       [:div {:id "dropzone"}
+        [:form.dropzone  {:action "/file" :id "demo-upload"}]]
+       [:script {:src "/js/dropzone.js"}]))
+ 
        [:script {:src "/js/moment.js"}]
        [:script {:src "/js/app.js"}]
 
