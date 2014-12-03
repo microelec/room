@@ -26,7 +26,14 @@
    [buddy.core.hash :as hash]
    [buddy.core.codecs :refer :all]
    [markdown.core :refer :all]
-   [yesql.core :refer [defquery defqueries]]))
+   [yesql.core :refer [defquery defqueries]])
+  (:use [compojure.core]
+        [ring.middleware.params]
+        [ring.middleware.multipart-params]
+        [ring.middleware.reload]
+        [ring.middleware.stacktrace]
+        [hiccup.core]
+        )
 
 (defn- logf [fmt & xs] (println (apply format fmt xs)))
 
@@ -80,8 +87,13 @@
               ";\nusers = " (json/write-str (get-users))))]
        [:div.container
         [:div {:id "app"}]]
+       
+       ;[:div {:id "dropzone"}
+       ;[:form.dropzone  {:action "/file" :id "demo-upload"}]]
+
        [:script {:src "/js/moment.js"}]
-       [:script {:src "/js/app.js"}]))
+       [:script {:src "/js/app.js"}]
+       ;[:script {:src "/js/dropzone.js"}]))
     (html5
      [:div
       [:a {:href "/login"} "login"]
@@ -178,7 +190,11 @@
       (wrap-anti-forgery)
       (wrap-authentication backend)
       (wrap-params)
-      (wrap-session {:store (cookie-store {:key "a 16-byt3 s3cr3t"})})))
+      (wrap-multipart-params)
+      (wrap-session {:store (cookie-store {:key "a 16-byt3 s3cr3t"})})
+      (wrap-reload '(room.core))
+     ; (wrap-stacktrace)
+      ))
 
 (defmulti event-msg-handler :id) ; Dispatch on event-id
 
